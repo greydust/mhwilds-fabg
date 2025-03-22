@@ -5,7 +5,6 @@ local Util = {
         DEFAULT_MOUSE_TRIGGER = 15,
         DEFAULT_PAD_TRIGGER = 2,
     },
-    Character = nil, -- app.HunterCharacter
     Pad = nil, -- app.cPlayerGameInput
     MouseKeyboard = nil, -- app.cPcPlayerGameInput
 }

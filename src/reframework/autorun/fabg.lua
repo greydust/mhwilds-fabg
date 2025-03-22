@@ -3,16 +3,26 @@ local util = require('fabg.util')
 
 setting.LoadSettings()
 
-local function isUsingHBG()
-    return util.Character:get_WeaponType() == 12 and setting.Settings.enableHBG
+log.debug(tostring(sdk.get_managed_singleton('app.PlayerManager')))
+
+local function isUsingHBG(character)
+    return character:get_WeaponType() == 12 and setting.Settings.enableHBG
 end
 
-local function isUsingLBG()
-    return util.Character:get_WeaponType() == 13 and setting.Settings.enableLBG
+local function isUsingLBG(character)
+    return character:get_WeaponType() == 13 and setting.Settings.enableLBG
 end
 
-local function isUsingBG()
-    return util.Character and util.Character:get_IsWeaponOn() and (isUsingHBG() or isUsingLBG())
+local function isUsingBG(character)
+    return character:get_IsWeaponOn() and (isUsingHBG(character) or isUsingLBG(character))
+end
+
+local function getCharacter()
+    local masterPlayer = sdk.get_managed_singleton('app.PlayerManager'):getMasterPlayer() -- app.cPlayerManageInfo
+    if masterPlayer then
+        return masterPlayer:get_Character() -- app.HunterCharacter
+    end
+    return nil
 end
 
 local state = {}
@@ -24,7 +34,9 @@ function(retval)
     if not state[setting.Settings.mouseTrigger] then
         state[setting.Settings.mouseTrigger] = 0
     end
-    if setting.Settings.enabled and setting.Settings.enableMouse and util.MouseKeyboard and isUsingBG() and setting.Settings.mouseTrigger >= 0 then
+
+    local character = getCharacter()
+    if character and setting.Settings.enabled and setting.Settings.enableMouse and util.MouseKeyboard and isUsingBG(character) and setting.Settings.mouseTrigger >= 0 then
         if targetKey._On == true then
             if state[setting.Settings.mouseTrigger] == 0 then
                 targetKey._OnTrigger = true
@@ -49,7 +61,9 @@ function(retval)
     if not state[setting.Settings.padTrigger] then
         state[setting.Settings.padTrigger] = 0
     end
-    if setting.Settings.enabled and setting.Settings.enablePad and util.Pad and isUsingBG() and setting.Settings.padTrigger >= 0 then
+
+    local character = getCharacter()
+    if character and setting.Settings.enabled and setting.Settings.enablePad and util.Pad and isUsingBG(character) and setting.Settings.padTrigger >= 0 then
         if targetKey._On == true then
             if state[setting.Settings.mouseTrigger] == 0 then
                 targetKey._OnTrigger = true
@@ -68,16 +82,6 @@ function(retval)
 end)
 
 re.on_pre_application_entry('UpdateBehavior', function()
-    if not util.Character then
-        local playerManager = sdk.get_managed_singleton('app.PlayerManager')
-        if playerManager then
-            local masterPlayer = playerManager:getMasterPlayer() -- app.cPlayerManageInfo
-            if masterPlayer then
-                util.Character = masterPlayer:get_Character() -- app.HunterCharacter
-            end
-        end
-    end
-
     if not util.Pad then
         local inputManager = sdk.get_managed_singleton('app.GameInputManager')
         if inputManager then
