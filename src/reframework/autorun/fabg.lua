@@ -17,8 +17,8 @@ end
 local function isUsingLBG(character)
     if character:get_WeaponType() == 13 then
         local wpHandling = character:get_WeaponHandling() -- app.cHunterWp13Handling
-        log.debug(tostring(wpHandling:get_IsRapidShotBoost()))
-        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or not setting.Settings.disableWhenRapidFire)
+        -- In rapid fire mode, disable full-auto until the magazine is empty or full. This will only enable auto reload without interfering with rapid fire.
+        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())
     end
     return false
 end
@@ -127,12 +127,6 @@ re.on_draw_ui(function()
             setting.Settings.enableLBG = value
             setting.SaveSettings()
         end
-        changed, value = imgui.checkbox('  Disable When Rapid Fire', setting.Settings.disableWhenRapidFire)
-        if changed then
-            setting.Settings.disableWhenRapidFire = value
-            setting.SaveSettings()
-        end
-        
 
         imgui.new_line()
 
