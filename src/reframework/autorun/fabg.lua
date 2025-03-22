@@ -9,13 +9,18 @@ local function isUsingHBG(character)
     if character:get_WeaponType() == 12 then
         local wpHandling = character:get_WeaponHandling() -- app.cHunterWp12Handling
         local energyBullet = wpHandling:get_EnergyBulletInfo() -- app.Wp12Def.cEnergyBulletInfo
-        return setting.Settings.enableHBG and (not character:get_WeaponHandling():get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
+        return setting.Settings.enableHBG and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
     end
     return false
 end
 
 local function isUsingLBG(character)
-    return character:get_WeaponType() == 13 and setting.Settings.enableLBG
+    if character:get_WeaponType() == 13 then
+        local wpHandling = character:get_WeaponHandling() -- app.cHunterWp13Handling
+        log.debug(tostring(wpHandling:get_IsRapidShotBoost()))
+        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or not setting.Settings.disableWhenRapidFire)
+    end
+    return false
 end
 
 local function isUsingBG(character)
@@ -122,6 +127,12 @@ re.on_draw_ui(function()
             setting.Settings.enableLBG = value
             setting.SaveSettings()
         end
+        changed, value = imgui.checkbox('  Disable When Rapid Fire', setting.Settings.disableWhenRapidFire)
+        if changed then
+            setting.Settings.disableWhenRapidFire = value
+            setting.SaveSettings()
+        end
+        
 
         imgui.new_line()
 
