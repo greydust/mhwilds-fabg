@@ -6,7 +6,7 @@ setting.LoadSettings()
 log.debug(tostring(sdk.get_managed_singleton('app.PlayerManager')))
 
 local function isUsingHBG(character)
-    return character:get_WeaponType() == 12 and setting.Settings.enableHBG
+    return character:get_WeaponType() == 12 and setting.Settings.enableHBG and not character:get_WeaponHandling():get_IsEnergyMode()
 end
 
 local function isUsingLBG(character)
