@@ -6,7 +6,12 @@ setting.LoadSettings()
 log.debug(tostring(sdk.get_managed_singleton('app.PlayerManager')))
 
 local function isUsingHBG(character)
-    return character:get_WeaponType() == 12 and setting.Settings.enableHBG and not character:get_WeaponHandling():get_IsEnergyMode()
+    if character:get_WeaponType() == 12 then
+        local wpHandling = character:get_WeaponHandling() -- app.cHunterWp12Handling
+        local energyBullet = wpHandling:get_EnergyBulletInfo() -- app.Wp12Def.cEnergyBulletInfo
+        return setting.Settings.enableHBG and (not character:get_WeaponHandling():get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
+    end
+    return false
 end
 
 local function isUsingLBG(character)
