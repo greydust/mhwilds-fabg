@@ -1,6 +1,3 @@
-local inputManager = sdk.get_managed_singleton('app.GameInputManager')
-local mkbInput = inputManager:get_PcPlayerInput()
-
 local setting = require('fabg.setting')
 local util = require('fabg.util')
 
@@ -18,30 +15,55 @@ local function isUsingBG()
     return util.Character and util.Character:get_IsWeaponOn() and (isUsingHBG() or isUsingLBG())
 end
 
-local lastOn = 0
+local state = {}
+
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromMouseKeyboard'), function(args)
 end,
 function(retval)
+    local targetKey = util.MouseKeyboard._Keys[setting.Settings.mouseTrigger]
+    if not state[setting.Settings.mouseTrigger] then
+        state[setting.Settings.mouseTrigger] = 0
+    end
     if setting.Settings.enabled and setting.Settings.enableMouse and util.MouseKeyboard and isUsingBG() and setting.Settings.mouseTrigger >= 0 then
-        local keys = mkbInput._Keys
-        local targetKeys = {keys[setting.Settings.mouseTrigger]}
-        for k, v in pairs(targetKeys) do
-            if v._On == true then
-                if lastOn == 0 then
-                    v._OnTrigger = true
-                    v._Repeat = true
-                    v._OffTrigger = false
-                elseif lastOn == 2 then
-                    v._On = false
-                    v._OnTrigger = false
-                    v._Repeat = false
-                    v._OffTrigger = true
-                end
-                log.debug(tostring(k) .. ' OnTrigger: ' .. tostring(v._OnTrigger) .. ' OffTrigger: ' .. tostring(v._OffTrigger) .. ' lastOn: ' .. tostring(lastOn)) 
+        if targetKey._On == true then
+            if state[setting.Settings.mouseTrigger] == 0 then
+                targetKey._OnTrigger = true
+                targetKey._Repeat = true
+                targetKey._OffTrigger = false
+            elseif state[setting.Settings.mouseTrigger] == 2 then
+                targetKey._On = false
+                targetKey._OnTrigger = false
+                targetKey._Repeat = false
+                targetKey._OffTrigger = true
             end
         end
         -- Two functions calls applyFromMouseKeyboard in one update, so a full loop is 4 calls.
-        lastOn = (lastOn + 1) % 4
+        state[setting.Settings.mouseTrigger] = (state[setting.Settings.mouseTrigger] + 1) % 4
+    end
+end)
+
+sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromPad'), function(args)
+end,
+function(retval)
+    local targetKey = util.Pad._Keys[setting.Settings.padTrigger]
+    if not state[setting.Settings.padTrigger] then
+        state[setting.Settings.padTrigger] = 0
+    end
+    if setting.Settings.enabled and setting.Settings.enablePad and util.Pad and isUsingBG() and setting.Settings.padTrigger >= 0 then
+        if targetKey._On == true then
+            if state[setting.Settings.mouseTrigger] == 0 then
+                targetKey._OnTrigger = true
+                targetKey._Repeat = true
+                targetKey._OffTrigger = false
+            elseif state[setting.Settings.mouseTrigger] == 3 then
+                targetKey._On = false
+                targetKey._OnTrigger = false
+                targetKey._Repeat = false
+                targetKey._OffTrigger = true
+            end
+        end
+        -- Three functions calls applyFromPad in one update, so a full loop is 6 calls.
+        state[setting.Settings.padTrigger] = (state[setting.Settings.padTrigger] + 1) % 2
     end
 end)
 
@@ -57,7 +79,10 @@ re.on_pre_application_entry('UpdateBehavior', function()
     end
 
     if not util.Pad then
-        -- TODO: implement pad
+        local inputManager = sdk.get_managed_singleton('app.GameInputManager')
+        if inputManager then
+            util.Pad = inputManager:get_PlayerInput() -- app.cPlayerGameInput
+        end
     end
 
     if not util.MouseKeyboard then
@@ -91,9 +116,9 @@ re.on_draw_ui(function()
 
         imgui.new_line()
 
-        changed, value = imgui.checkbox('Enable Gamepad', setting.Settings.enableGamepad)
+        changed, value = imgui.checkbox('Enable Pad', setting.Settings.enablePad)
         if changed then
-            setting.Settings.enableGamepad = value
+            setting.Settings.enablePad = value
             setting.SaveSettings()
         end
 

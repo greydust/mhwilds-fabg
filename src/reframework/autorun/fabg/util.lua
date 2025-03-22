@@ -2,11 +2,11 @@ require('fabg.button.mouse_button')
 
 local Util = {
     Settings = {
-        DEFAULT_GAMEPAD_TRIGGER = 2048,
         DEFAULT_MOUSE_TRIGGER = 15,
+        DEFAULT_PAD_TRIGGER = 2,
     },
     Character = nil, -- app.HunterCharacter
-    Pad = nil,
+    Pad = nil, -- app.cPlayerGameInput
     MouseKeyboard = nil, -- app.cPcPlayerGameInput
 }
 

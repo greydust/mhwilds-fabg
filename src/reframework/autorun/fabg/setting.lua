@@ -5,9 +5,10 @@ local Setting = {
         enabled = true,
         enableHBG = true,
         enableLBG = true,
-        enableGamepad = true,
         enableMouse = false,
+        enablePad = true,
         mouseTrigger = util.Settings.DEFAULT_MOUSE_TRIGGER,
+        padTrigger = util.Settings.DEFAULT_PAD_TRIGGER,
     },
 }
 
