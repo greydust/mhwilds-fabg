@@ -5,6 +5,7 @@ local Setting = {
         enabled = true,
         enableHBG = true,
         enableLBG = true,
+        disableRapidFire = false,
         enableMouse = false,
         enablePad = true,
         mouseTrigger = util.Settings.DEFAULT_MOUSE_TRIGGER,

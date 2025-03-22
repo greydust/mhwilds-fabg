@@ -18,7 +18,7 @@ local function isUsingLBG(character)
     if character:get_WeaponType() == 13 then
         local wpHandling = character:get_WeaponHandling() -- app.cHunterWp13Handling
         -- In rapid fire mode, disable full-auto until the magazine is empty or full. This will only enable auto reload without interfering with rapid fire.
-        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())
+        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or (not setting.Settings.disableRapidFire and (wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())))
     end
     return false
 end
@@ -103,6 +103,13 @@ re.on_pre_application_entry('UpdateBehavior', function()
         local inputManager = sdk.get_managed_singleton('app.GameInputManager')
         if inputManager then
             util.MouseKeyboard = inputManager:get_PcPlayerInput() -- app.cPcPlayerGameInput
+
+            local padDef = inputManager:get_RawKeyDefinitionPad()
+            local mkbDef = inputManager:get_RawKeyDefinitonMkb()
+            log.debug('--- Pad ---')
+            for k, v in pairs(padDef:get_Values()) do
+                log.debug(tostring(k) .. ': ' .. tostring(v._Name) .. ', ' .. tostring(v._Key))
+            end
         end
     end
 end)
@@ -127,6 +134,11 @@ re.on_draw_ui(function()
             setting.Settings.enableLBG = value
             setting.SaveSettings()
         end
+        changed, value = imgui.checkbox('  Disable In Rapid Fire Mode', setting.Settings.disableRapidFire)
+        if changed then
+            setting.Settings.disableRapidFire = value
+            setting.SaveSettings()
+        end
 
         imgui.new_line()
 
@@ -145,21 +157,3 @@ re.on_draw_ui(function()
         imgui.tree_pop();
     end
 end)
-
-
---[[
-
-
-local padDevice = sdk.find_type_definition('ace.PadManager');
-
-local triggerOffset = sdk.find_type_definition('ace.cMouseKeyboardInfo.KEY_INFO'):get_field('_Trigger'):get_offset_from_base()
-
-
-
-
-
-
-re.on_config_save(function()
-	setting.SaveSettings();
-end)
-]]--
