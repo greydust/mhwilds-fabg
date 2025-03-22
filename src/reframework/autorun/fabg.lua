@@ -87,7 +87,7 @@ function(retval)
             end
         end
         -- Three functions calls applyFromPad in one update, so a full loop is 6 calls.
-        state[setting.Settings.padTrigger] = (state[setting.Settings.padTrigger] + 1) % 2
+        state[setting.Settings.padTrigger] = (state[setting.Settings.padTrigger] + 1) % 6
     end
 end)
 
