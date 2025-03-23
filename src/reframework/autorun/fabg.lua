@@ -37,6 +37,10 @@ end
 
 local state = {}
 
+local mouseUpdate = false
+local mouseOnTrigger = false
+local padUpdate = false
+local padOnTrigger = false
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromMouseKeyboard'), function(args)
 end,
 function(retval)
@@ -46,21 +50,24 @@ function(retval)
     end
 
     local character = getCharacter()
-    if character and setting.Settings.enabled and setting.Settings.enableMouse and util.MouseKeyboard and isUsingBG(character) and setting.Settings.mouseTrigger >= 0 then
+    if character and setting.Settings.enabled and setting.Settings.enableMouse
+            and util.MouseKeyboard and isUsingBG(character) and setting.Settings.mouseTrigger >= 0 then
+        if mouseUpdate then
+            mouseUpdate = false
+            mouseOnTrigger = not mouseOnTrigger
+        end
         if targetKey._On == true then
-            if state[setting.Settings.mouseTrigger] == 0 then
+            if mouseOnTrigger then
                 targetKey._OnTrigger = true
                 targetKey._Repeat = true
                 targetKey._OffTrigger = false
-            elseif state[setting.Settings.mouseTrigger] == 2 then
+            else
                 targetKey._On = false
                 targetKey._OnTrigger = false
                 targetKey._Repeat = false
                 targetKey._OffTrigger = true
             end
         end
-        -- Two functions calls applyFromMouseKeyboard in one update, so a full loop is 4 calls.
-        state[setting.Settings.mouseTrigger] = (state[setting.Settings.mouseTrigger] + 1) % 4
     end
 end)
 
@@ -73,21 +80,24 @@ function(retval)
     end
 
     local character = getCharacter()
-    if character and setting.Settings.enabled and setting.Settings.enablePad and util.Pad and isUsingBG(character) and setting.Settings.padTrigger >= 0 then
+    if character and setting.Settings.enabled and setting.Settings.enablePad
+            and util.Pad and isUsingBG(character) and setting.Settings.padTrigger >= 0 then
+        if padUpdate then
+            padUpdate = false
+            padOnTrigger = not padOnTrigger
+        end
         if targetKey._On == true then
-            if state[setting.Settings.mouseTrigger] == 0 then
+            if padOnTrigger then
                 targetKey._OnTrigger = true
                 targetKey._Repeat = true
                 targetKey._OffTrigger = false
-            elseif state[setting.Settings.mouseTrigger] == 3 then
+            else
                 targetKey._On = false
                 targetKey._OnTrigger = false
                 targetKey._Repeat = false
                 targetKey._OffTrigger = true
             end
         end
-        -- Three functions calls applyFromPad in one update, so a full loop is 6 calls.
-        state[setting.Settings.padTrigger] = (state[setting.Settings.padTrigger] + 1) % 6
     end
 end)
 
@@ -103,15 +113,13 @@ re.on_pre_application_entry('UpdateBehavior', function()
         local inputManager = sdk.get_managed_singleton('app.GameInputManager')
         if inputManager then
             util.MouseKeyboard = inputManager:get_PcPlayerInput() -- app.cPcPlayerGameInput
-
-            local padDef = inputManager:get_RawKeyDefinitionPad()
-            local mkbDef = inputManager:get_RawKeyDefinitonMkb()
-            log.debug('--- Pad ---')
-            for k, v in pairs(padDef:get_Values()) do
-                log.debug(tostring(k) .. ': ' .. tostring(v._Name) .. ', ' .. tostring(v._Key))
-            end
         end
     end
+end)
+
+re.on_frame(function()
+    mouseUpdate = true
+    padUpdate = true
 end)
 
 re.on_draw_ui(function()
@@ -134,7 +142,7 @@ re.on_draw_ui(function()
             setting.Settings.enableLBG = value
             setting.SaveSettings()
         end
-        changed, value = imgui.checkbox('  Disable In Rapid Fire Mode', setting.Settings.disableRapidFire)
+        changed, value = imgui.checkbox('  Disable in Rapid Fire Mode', setting.Settings.disableRapidFire)
         if changed then
             setting.Settings.disableRapidFire = value
             setting.SaveSettings()
