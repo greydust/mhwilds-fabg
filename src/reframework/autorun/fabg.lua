@@ -58,39 +58,25 @@ local function getCharacter()
     return nil
 end
 
-local state = {}
+local onTrigger = false
 
-local mouseUpdate = false
-local mouseOnTrigger = false
-local padUpdate = false
-local padOnTrigger = false
+function lockTrigger(key)
+    if key._On == true then
+        key._On = onTrigger
+        key._OnTrigger = onTrigger
+        key._Repeat = onTrigger
+        key._OffTrigger = not onTrigger
+    end
+end
+
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromMouseKeyboard'), function(args)
 end,
 function(retval)
     local targetKey = util.MouseKeyboard._Keys[setting.Settings.mouseTrigger]
-    if not state[setting.Settings.mouseTrigger] then
-        state[setting.Settings.mouseTrigger] = 0
-    end
-
     local character = getCharacter()
     if character and setting.Settings.enabled and setting.Settings.enableMouse
             and util.MouseKeyboard and isUsingBG(character) and setting.Settings.mouseTrigger >= 0 then
-        if mouseUpdate then
-            mouseUpdate = false
-            mouseOnTrigger = not mouseOnTrigger
-        end
-        if targetKey._On == true then
-            if mouseOnTrigger then
-                targetKey._OnTrigger = true
-                targetKey._Repeat = true
-                targetKey._OffTrigger = false
-            else
-                targetKey._On = false
-                targetKey._OnTrigger = false
-                targetKey._Repeat = false
-                targetKey._OffTrigger = true
-            end
-        end
+        lockTrigger(targetKey)
     end
 end)
 
@@ -98,29 +84,10 @@ sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromPad'), 
 end,
 function(retval)
     local targetKey = util.Pad._Keys[setting.Settings.padTrigger]
-    if not state[setting.Settings.padTrigger] then
-        state[setting.Settings.padTrigger] = 0
-    end
-
     local character = getCharacter()
     if character and setting.Settings.enabled and setting.Settings.enablePad
             and util.Pad and isUsingBG(character) and setting.Settings.padTrigger >= 0 then
-        if padUpdate then
-            padUpdate = false
-            padOnTrigger = not padOnTrigger
-        end
-        if targetKey._On == true then
-            if padOnTrigger then
-                targetKey._OnTrigger = true
-                targetKey._Repeat = true
-                targetKey._OffTrigger = false
-            else
-                targetKey._On = false
-                targetKey._OnTrigger = false
-                targetKey._Repeat = false
-                targetKey._OffTrigger = true
-            end
-        end
+        lockTrigger(targetKey)
     end
 end)
 
@@ -141,8 +108,7 @@ re.on_pre_application_entry('UpdateBehavior', function()
 end)
 
 re.on_frame(function()
-    mouseUpdate = true
-    padUpdate = true
+    onTrigger = not onTrigger
 end)
 
 re.on_draw_ui(function()
