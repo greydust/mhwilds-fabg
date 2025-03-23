@@ -6,21 +6,44 @@ setting.LoadSettings()
 log.debug(tostring(sdk.get_managed_singleton('app.PlayerManager')))
 
 local function isUsingHBG(character)
-    if character:get_WeaponType() == 12 then
-        local wpHandling = character:get_WeaponHandling() -- app.cHunterWp12Handling
-        local energyBullet = wpHandling:get_EnergyBulletInfo() -- app.Wp12Def.cEnergyBulletInfo
-        return setting.Settings.enableHBG and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
+    if character:get_WeaponType() ~= 12 then
+        return false
     end
-    return false
+
+    local wpHandling = character:get_WeaponHandling() -- app.cHunterWp12Handling
+    if not wpHandling then
+        log.debug('Using HBG but get_WeaponHandling is nil') 
+        return false
+    end
+
+    local energyBullet = wpHandling:get_EnergyBulletInfo() -- app.Wp12Def.cEnergyBulletInfo
+    if not energyBullet then
+        log.debug('Using HBG but get_EnergyBulletInfo is nil') 
+        return false
+    end
+
+    return setting.Settings.enableHBG and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
 end
 
 local function isUsingLBG(character)
-    if character:get_WeaponType() == 13 then
-        local wpHandling = character:get_WeaponHandling() -- app.cHunterWp13Handling
-        -- In rapid fire mode, disable full-auto until the magazine is empty or full. This will only enable auto reload without interfering with rapid fire.
-        return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or (not setting.Settings.disableRapidFire and (wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())))
+    if character:get_WeaponType() ~= 13 then
+        return false
     end
-    return false
+    
+    local wpHandling = character:get_WeaponHandling() -- app.cHunterWp13Handling
+    if not wpHandling then
+        log.debug('Using LBG but get_WeaponHandling is nil') 
+        return false
+    end
+
+    local ammo = wpHandling:getCurrentAmmo() -- app.cWeaponGunAmmo
+    if not ammo then
+        log.debug('Using LBG but getCurrentAmmo is nil') 
+        return false
+    end
+
+    -- In rapid fire mode, disable full-auto until the magazine is empty or full. This will only enable auto reload without interfering with rapid fire.
+    return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or (not setting.Settings.disableRapidFire and (wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())))
 end
 
 local function isUsingBG(character)
