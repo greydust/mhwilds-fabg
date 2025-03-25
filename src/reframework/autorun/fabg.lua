@@ -72,22 +72,28 @@ end
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromMouseKeyboard'), function(args)
 end,
 function(retval)
-    local targetKey = util.MouseKeyboard._Keys[setting.Settings.mouseTrigger]
+    local targetKey = util.MouseKeyboard._Keys[util.DEFAULT_MOUSE_TRIGGER]
     local character = getCharacter()
     if character and setting.Settings.enabled and setting.Settings.enableMouse
-            and util.MouseKeyboard and isUsingBG(character) and setting.Settings.mouseTrigger >= 0 then
+            and util.MouseKeyboard and isUsingBG(character) then
         lockTrigger(targetKey)
     end
 end)
 
+local once = true
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromPad'), function(args)
 end,
 function(retval)
-    local targetKey = util.Pad._Keys[setting.Settings.padTrigger]
+    local targetKeys = {}
+    for _, k in ipairs(util.DEFAULT_PAD_TRIGGER) do
+        table.insert(targetKeys, util.Pad._Keys[k])
+    end
     local character = getCharacter()
     if character and setting.Settings.enabled and setting.Settings.enablePad
-            and util.Pad and isUsingBG(character) and setting.Settings.padTrigger >= 0 then
-        lockTrigger(targetKey)
+            and util.Pad and isUsingBG(character) then
+        for _, targetKey in ipairs(targetKeys) do
+            lockTrigger(targetKey)
+        end
     end
 end)
 

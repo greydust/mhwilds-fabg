@@ -1,8 +1,6 @@
 local Util = {
-    Settings = {
-        DEFAULT_MOUSE_TRIGGER = 15,
-        DEFAULT_PAD_TRIGGER = 2,
-    },
+    DEFAULT_MOUSE_TRIGGER = 15,
+    DEFAULT_PAD_TRIGGER = {2, R2},
     Pad = nil, -- app.cPlayerGameInput
     MouseKeyboard = nil, -- app.cPcPlayerGameInput
 }
