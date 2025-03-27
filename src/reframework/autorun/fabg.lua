@@ -3,7 +3,21 @@ local util = require('fabg.util')
 
 setting.LoadSettings()
 
-log.debug(tostring(sdk.get_managed_singleton('app.PlayerManager')))
+local function getMouseKeyboard()
+    local inputManager = sdk.get_managed_singleton('app.GameInputManager')
+    if inputManager then
+        return inputManager:get_PcPlayerInput() -- app.cPcPlayerGameInput
+    end
+    return nil
+end
+
+local function getPad()
+    local inputManager = sdk.get_managed_singleton('app.GameInputManager')
+    if inputManager then
+        return inputManager:get_PlayerInput() -- app.cPlayerGameInput
+    end
+    return nil
+end
 
 local function isUsingHBG(character)
     if character:get_WeaponType() ~= 12 then
@@ -72,10 +86,14 @@ end
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromMouseKeyboard'), function(args)
 end,
 function(retval)
-    local targetKey = util.MouseKeyboard._Keys[util.DEFAULT_MOUSE_TRIGGER]
+    local mouseKeyboard = getMouseKeyboard()
+    if mouseKeyboard == nil then
+        return
+    end
+
+    local targetKey = mouseKeyboard._Keys[util.DEFAULT_MOUSE_TRIGGER]
     local character = getCharacter()
-    if character and setting.Settings.enabled and setting.Settings.enableMouse
-            and util.MouseKeyboard and isUsingBG(character) then
+    if character and setting.Settings.enabled and setting.Settings.enableMouse and isUsingBG(character) then
         lockTrigger(targetKey)
     end
 end)
@@ -84,31 +102,19 @@ local once = true
 sdk.hook(sdk.find_type_definition('ace.cGameInput'):get_method('applyFromPad'), function(args)
 end,
 function(retval)
+    local pad = getPad()
+    if pad == nil then
+        return
+    end
+
     local targetKeys = {}
     for _, k in ipairs(util.DEFAULT_PAD_TRIGGER) do
-        table.insert(targetKeys, util.Pad._Keys[k])
+        table.insert(targetKeys, pad._Keys[k])
     end
     local character = getCharacter()
-    if character and setting.Settings.enabled and setting.Settings.enablePad
-            and util.Pad and isUsingBG(character) then
+    if character and setting.Settings.enabled and setting.Settings.enablePad and isUsingBG(character) then
         for _, targetKey in ipairs(targetKeys) do
             lockTrigger(targetKey)
-        end
-    end
-end)
-
-re.on_pre_application_entry('UpdateBehavior', function()
-    if not util.Pad then
-        local inputManager = sdk.get_managed_singleton('app.GameInputManager')
-        if inputManager then
-            util.Pad = inputManager:get_PlayerInput() -- app.cPlayerGameInput
-        end
-    end
-
-    if not util.MouseKeyboard then
-        local inputManager = sdk.get_managed_singleton('app.GameInputManager')
-        if inputManager then
-            util.MouseKeyboard = inputManager:get_PcPlayerInput() -- app.cPcPlayerGameInput
         end
     end
 end)
