@@ -19,6 +19,18 @@ local function getPad()
     return nil
 end
 
+local fastReloadAmmo = {
+    [1] = true, -- Pierce
+    [7] = true, -- Flaming
+    [8] = true, -- Water
+    [9] = true, -- Thunder
+    [10] = true, -- Ice
+    [12] = true, -- Poison
+    [13] = true, -- Paralysis
+    [18] = true, -- Exhaust
+    [19] = true, -- Tranq
+}
+
 local function isUsingHBG(character)
     if character:get_WeaponType() ~= 12 then
         return false
@@ -36,7 +48,14 @@ local function isUsingHBG(character)
         return false
     end
 
-    return setting.Settings.enableHBG and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)
+    local actionController = character:get_SubActionController() -- ace.cActionController
+    local actionID = actionController:get_CurrentActionID() -- ace.cActionBase
+    local ammo = wpHandling:getCurrentAmmo() -- app.cWeaponGunAmmo
+    -- First check if currently not using wyverheart ignition
+    -- Then check oi fast reload not enabled, or if the ammo count is not one, or if only one ammo remain and the character is in a position that can execute fast reload
+    return setting.Settings.enableHBG
+        and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)              
+        and (not fastReloadAmmo[wpHandling:get_ShellType()] or (not setting.Settings.enableFastReload or ammo:get_LoadedAmmo() ~= 1 or actionID._Category == 1))
 end
 
 local function isUsingLBG(character)
@@ -138,6 +157,13 @@ re.on_draw_ui(function()
             setting.Settings.enableHBG = value
             setting.SaveSettings()
         end
+        changed, value = imgui.checkbox('  Enable Fast Reload Technique', setting.Settings.enableFastReload)
+        if changed then
+            setting.Settings.enableFastReload = value
+            setting.SaveSettings()
+        end
+
+
         changed, value = imgui.checkbox('Enable Light Bowgun', setting.Settings.enableLBG)
         if changed then
             setting.Settings.enableLBG = value

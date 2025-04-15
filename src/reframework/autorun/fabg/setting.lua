@@ -4,6 +4,7 @@ local Setting = {
     Settings = {
         enabled = true,
         enableHBG = true,
+        enableFastReload = false,
         enableLBG = true,
         disableRapidFire = false,
         enableMouse = true,
