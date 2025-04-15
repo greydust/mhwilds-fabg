@@ -48,6 +48,7 @@ local function isUsingHBG(character)
         return false
     end
 
+
     local actionController = character:get_SubActionController() -- ace.cActionController
     local actionID = actionController:get_CurrentActionID() -- ace.cActionBase
     local ammo = wpHandling:getCurrentAmmo() -- app.cWeaponGunAmmo
@@ -55,7 +56,7 @@ local function isUsingHBG(character)
     -- Then check oi fast reload not enabled, or if the ammo count is not one, or if only one ammo remain and the character is in a position that can execute fast reload
     return setting.Settings.enableHBG
         and (not wpHandling:get_IsEnergyMode() or energyBullet:get_StandardEnergyShellType() ~= 0)              
-        and (not fastReloadAmmo[wpHandling:get_ShellType()] or (not setting.Settings.enableFastReload or ammo:get_LoadedAmmo() ~= 1 or actionID._Category == 1))
+        and (not fastReloadAmmo[wpHandling:get_ShellType()] or (not setting.Settings.enableFastReload or ammo:get_LoadedAmmo() ~= 1 or ammo:get_BackupAmmo() == 1 or actionID._Category == 1))
 end
 
 local function isUsingLBG(character)
