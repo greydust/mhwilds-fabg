@@ -75,8 +75,13 @@ local function isUsingLBG(character)
         return false
     end
 
+    local actionController = character:get_SubActionController() -- ace.cActionController
+    local actionID = actionController:get_CurrentActionID() -- ace.cActionBase
+    local ammo = wpHandling:getCurrentAmmo() -- app.cWeaponGunAmmo
     -- In rapid fire mode, disable full-auto until the magazine is empty or full. This will only enable auto reload without interfering with rapid fire.
-    return character:get_WeaponType() == 13 and setting.Settings.enableLBG and (not wpHandling:get_IsRapidShotBoost() or (not setting.Settings.disableRapidFire and (wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())))
+    return setting.Settings.enableLBG
+        and (not wpHandling:get_IsRapidShotBoost() or (not setting.Settings.disableRapidFire and (wpHandling:getCurrentAmmo():get_IsEmptyAmmo() or wpHandling:getCurrentAmmo():get_IsFullAmmo())))
+        and (not fastReloadAmmo[wpHandling:get_ShellType()] or (not setting.Settings.enableFastReload or ammo:get_LoadedAmmo() ~= 1 or actionID._Category == 1))
 end
 
 local function isUsingBG(character)
@@ -157,12 +162,6 @@ re.on_draw_ui(function()
             setting.Settings.enableHBG = value
             setting.SaveSettings()
         end
-        changed, value = imgui.checkbox('  Enable Fast Reload Technique', setting.Settings.enableFastReload)
-        if changed then
-            setting.Settings.enableFastReload = value
-            setting.SaveSettings()
-        end
-
 
         changed, value = imgui.checkbox('Enable Light Bowgun', setting.Settings.enableLBG)
         if changed then
@@ -172,6 +171,12 @@ re.on_draw_ui(function()
         changed, value = imgui.checkbox('  Disable in Rapid Fire Mode', setting.Settings.disableRapidFire)
         if changed then
             setting.Settings.disableRapidFire = value
+            setting.SaveSettings()
+        end
+
+        changed, value = imgui.checkbox('Enable Fast Reload Technique', setting.Settings.enableFastReload)
+        if changed then
+            setting.Settings.enableFastReload = value
             setting.SaveSettings()
         end
 
