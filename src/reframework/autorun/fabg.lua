@@ -52,6 +52,11 @@ local function isUsingHBG(character)
     local actionController = character:get_SubActionController() -- ace.cActionController
     local actionID = actionController:get_CurrentActionID() -- ace.cActionBase
     local ammo = wpHandling:getCurrentAmmo() -- app.cWeaponGunAmmo
+    if ammo == nil or actionID == nil then
+        log.debug('Using HBG but getCurrentAmmo or actionID is nil') 
+        return false
+    end
+
     -- First check if currently not using wyverheart ignition
     -- Then check oi fast reload not enabled, or if the ammo count is not one, or if only one ammo remain and the character is in a position that can execute fast reload
     return setting.Settings.enableHBG
